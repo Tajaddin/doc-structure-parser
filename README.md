@@ -2,7 +2,7 @@
 
 > PDF / DOCX / Markdown → a single typed Pydantic structure with **headings, paragraphs, tables, and footnotes** preserved in document order. Zero LLM, optional heavy deps — pdfminer and python-docx are extras you pull in only when you need them.
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-14%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 
 ## Why this exists
 
@@ -117,7 +117,7 @@ pytest -q
 ```
 
 ```
-14 passed in 0.20s
+17 passed
 ```
 
 Coverage:
@@ -127,8 +127,9 @@ Coverage:
 * `Heading.level` rejects out-of-range
 * `Table.n_columns` and `.n_data_rows` math
 * `DocumentStructure` view methods (`headings()`, `tables()`, `footnotes()`)
+* PDF, on a two-page PDF the test writes by hand: font sizes to heading levels, body and footnote, paragraph joining, page numbers, the `heading_levels` cap
 
-PDF and DOCX parsers are exercised by smoke imports — full end-to-end tests on those formats need real binary fixtures and are out of scope for v0.1.
+DOCX is exercised by smoke imports only.
 
 ## Project layout
 
@@ -140,7 +141,7 @@ PDF and DOCX parsers are exercised by smoke imports — full end-to-end tests on
 │       ├── markdown_parser.py    # always-available, no extra deps
 │       ├── docx_parser.py        # needs python-docx
 │       └── pdf_parser.py         # needs pdfminer.six
-└── tests/                    # 14 pytest cases (markdown + models)
+└── tests/                    # 17 pytest cases (markdown, models, PDF)
 ```
 
 ## Limitations
