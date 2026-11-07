@@ -27,7 +27,7 @@ dependencies = [
 pdf = ["pdfminer.six>=20240706"]
 docx = ["python-docx>=1.1"]
 all = ["pdfminer.six>=20240706", "python-docx>=1.1"]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+dev = ["pytest>=8.0", "ruff>=0.6", "pdfminer.six>=20240706", "python-docx>=1.1"]
 
 [project.urls]
 Homepage = "https://github.com/Tajaddin/doc-structure-parser"

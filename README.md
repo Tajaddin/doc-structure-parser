@@ -2,7 +2,7 @@
 
 > PDF / DOCX / Markdown → a single typed Pydantic structure with **headings, paragraphs, tables, and footnotes** preserved in document order. Zero LLM, optional heavy deps — pdfminer and python-docx are extras you pull in only when you need them.
 
-[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-14%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Tests](https://img.shields.io/badge/tests-19%20passing-brightgreen)](#tests) [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
 
 ## Why this exists
 
@@ -71,7 +71,7 @@ print(doc.metadata["body_font_size"])
 | Format | What gets recognized | How |
 |---|---|---|
 | **Markdown** | ATX headings (`# h1` … `###### h6`), pipe tables with separator row, footnotes `[^marker]: text`, paragraphs (consecutive non-blank lines) | Regex-driven syntax parser; no external deps |
-| **DOCX** | `Heading 1` … `Heading 6` styles → `Heading.level`, plain paragraphs, all tables linearized to row text | `python-docx` walk over `document.paragraphs` + `document.tables` |
+| **DOCX** | `Heading 1` … `Heading 6` styles → `Heading.level`, plain paragraphs, all tables linearized to row text | `python-docx` walk over the document body, paragraphs and tables interleaved |
 | **PDF** | Font-size clustering — top-N sizes above body → H1..HN; smaller-than-body → footnote; rest → paragraphs | `pdfminer.six` text extraction + character-level font-size aggregation |
 
 Every recognized block lands in the same `DocumentStructure.blocks` list, in document order, with `page` (for PDFs) and `source_index` set so downstream chunkers can reorder safely.
@@ -117,7 +117,7 @@ pytest -q
 ```
 
 ```
-14 passed in 0.20s
+19 passed
 ```
 
 Coverage:
@@ -127,8 +127,8 @@ Coverage:
 * `Heading.level` rejects out-of-range
 * `Table.n_columns` and `.n_data_rows` math
 * `DocumentStructure` view methods (`headings()`, `tables()`, `footnotes()`)
-
-PDF and DOCX parsers are exercised by smoke imports — full end-to-end tests on those formats need real binary fixtures and are out of scope for v0.1.
+* PDF, on a two-page PDF the test writes by hand: font sizes to heading levels, body and footnote, paragraph joining, page numbers, the `heading_levels` cap
+* DOCX, on a document the test builds with python-docx: heading levels, tables kept between the paragraphs around them, linearized table text
 
 ## Project layout
 
@@ -140,7 +140,7 @@ PDF and DOCX parsers are exercised by smoke imports — full end-to-end tests on
 │       ├── markdown_parser.py    # always-available, no extra deps
 │       ├── docx_parser.py        # needs python-docx
 │       └── pdf_parser.py         # needs pdfminer.six
-└── tests/                    # 14 pytest cases (markdown + models)
+└── tests/                    # 19 pytest cases (markdown, models, PDF, DOCX)
 ```
 
 ## Limitations

@@ -11,6 +11,7 @@ def parse_docx(path: str | Path) -> DocumentStructure:
     """Parse a DOCX file into a :class:`DocumentStructure`."""
     try:
         from docx import Document
+        from docx.table import Table as DocxTable
     except ImportError as exc:  # pragma: no cover
         raise RuntimeError(
             "python-docx is not installed. Install with `pip install doc-structure-parser[docx]`."
@@ -21,12 +22,19 @@ def parse_docx(path: str | Path) -> DocumentStructure:
     blocks = []
     src_index = 0
 
-    # Walk paragraphs in document order.
-    for para in doc.paragraphs:
-        text = para.text.strip()
+    # The body's paragraphs and tables, interleaved as they appear in the file.
+    for item in doc.iter_inner_content():
+        if isinstance(item, DocxTable):
+            rows = [[cell.text.strip() for cell in row.cells] for row in item.rows]
+            if not rows:
+                continue
+            blocks.append(Table(text=_linearize_table(rows), rows=rows, source_index=src_index))
+            src_index += 1
+            continue
+        text = item.text.strip()
         if not text:
             continue
-        style = (para.style.name if para.style else "") or ""
+        style = (item.style.name if item.style else "") or ""
         if style.startswith("Heading"):
             try:
                 level = int(style.split()[-1])
@@ -36,17 +44,6 @@ def parse_docx(path: str | Path) -> DocumentStructure:
             blocks.append(Heading(text=text, level=level, source_index=src_index, metadata={"style": style}))
         else:
             blocks.append(Paragraph(text=text, source_index=src_index, metadata={"style": style}))
-        src_index += 1
-
-    # Tables come from doc.tables (already in document order if iterating both).
-    for table in doc.tables:
-        rows: list[list[str]] = []
-        for row in table.rows:
-            rows.append([cell.text.strip() for cell in row.cells])
-        if not rows:
-            continue
-        text_lin = _linearize_table(rows)
-        blocks.append(Table(text=text_lin, rows=rows, source_index=src_index))
         src_index += 1
 
     return DocumentStructure(source=str(path), format="docx", blocks=blocks)
